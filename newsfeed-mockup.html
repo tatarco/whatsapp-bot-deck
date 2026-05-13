@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BizFlow — Newsfeed Management Mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Hebrew:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#f4f6f9;--surface:#fff;--border:#e5e7eb;
+  --text:#111827;--muted:#6b7280;--light:#f9fafb;
+  --green:#16a34a;--green-bg:#dcfce7;--green-light:#f0fdf4;
+  --amber:#d97706;--amber-bg:#fef3c7;
+  --red:#dc2626;--red-bg:#fee2e2;
+  --blue:#2563eb;--blue-bg:#dbeafe;--blue-light:#eff6ff;
+  --purple:#7c3aed;--purple-bg:#ede9fe;
+  --radius:10px;
+  --wa:#25D366;
+}
+body{font-family:'Noto Sans Hebrew',sans-serif;background:var(--bg);color:var(--text);direction:rtl;min-height:100vh}
+
+/* ── LAYOUT ── */
+.app{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:220px;background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.content{flex:1;overflow-y:auto;padding:24px}
+
+/* ── SIDEBAR ── */
+.sidebar-logo{padding:18px 16px;border-bottom:1px solid var(--border);font-weight:700;font-size:16px;color:var(--text)}
+.sidebar-logo span{color:var(--wa)}
+.nav-item{padding:10px 16px;cursor:pointer;font-size:14px;color:var(--muted);display:flex;align-items:center;gap:8px;border-radius:6px;margin:2px 8px;transition:.15s}
+.nav-item:hover{background:var(--light);color:var(--text)}
+.nav-item.active{background:var(--blue-bg);color:var(--blue);font-weight:600}
+.nav-section{padding:12px 16px 4px;font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.8px;text-transform:uppercase}
+
+/* ── TOPBAR ── */
+.topbar-title{font-size:18px;font-weight:700}
+.topbar-sub{font-size:13px;color:var(--muted)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;border:none;transition:.15s}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:#1d4ed8}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--light)}
+.btn-danger{background:var(--red-bg);color:var(--red);border:1px solid #fca5a5}
+.btn-sm{padding:5px 10px;font-size:12px}
+
+/* ── STATS ROW ── */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px}
+.stat-label{font-size:12px;color:var(--muted);margin-bottom:4px}
+.stat-value{font-size:28px;font-weight:700}
+.stat-sub{font-size:12px;color:var(--muted);margin-top:2px}
+.stat-card.green .stat-value{color:var(--green)}
+.stat-card.blue .stat-value{color:var(--blue)}
+.stat-card.amber .stat-value{color:var(--amber)}
+.stat-card.purple .stat-value{color:var(--purple)}
+
+/* ── BROADCAST LIST ── */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.section-title{font-size:15px;font-weight:600}
+.filters{display:flex;gap:8px;align-items:center}
+.filter-chip{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--muted);transition:.15s}
+.filter-chip.active{background:var(--blue-bg);color:var(--blue);border-color:#93c5fd}
+.filter-chip:hover{background:var(--light)}
+
+.broadcast-table{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.table-head{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 120px;padding:10px 16px;background:var(--light);border-bottom:1px solid var(--border);font-size:12px;font-weight:600;color:var(--muted)}
+.broadcast-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 120px;padding:14px 16px;border-bottom:1px solid var(--border);align-items:center;cursor:pointer;transition:.1s}
+.broadcast-row:last-child{border-bottom:none}
+.broadcast-row:hover{background:var(--light)}
+.broadcast-row.selected{background:var(--blue-light)}
+.broadcast-title-col .title{font-size:14px;font-weight:600;margin-bottom:2px}
+.broadcast-title-col .meta{font-size:12px;color:var(--muted);display:flex;gap:8px;align-items:center}
+
+/* ── PRIORITY BADGES ── */
+.priority{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600}
+.priority.high{background:#fee2e2;color:#dc2626}
+.priority.medium{background:#fef3c7;color:#d97706}
+.priority.low{background:#f3f4f6;color:#6b7280}
+
+/* ── STATUS BADGE ── */
+.status{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600}
+.status.sent{background:var(--green-bg);color:var(--green)}
+.status.draft{background:var(--blue-bg);color:var(--blue)}
+.status.sending{background:var(--amber-bg);color:var(--amber)}
+
+/* ── PROGRESS BAR ── */
+.progress-wrap{display:flex;flex-direction:column;gap:3px}
+.progress-bar{height:5px;border-radius:3px;background:#e5e7eb;overflow:hidden}
+.progress-fill{height:100%;border-radius:3px;background:var(--green)}
+.progress-label{font-size:11px;color:var(--muted)}
+
+/* ── DETAIL PANEL ── */
+.detail-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-top:20px;overflow:hidden}
+.detail-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.detail-title{font-size:15px;font-weight:700}
+.detail-tabs{display:flex;gap:0;border-bottom:1px solid var(--border)}
+.detail-tab{padding:10px 20px;font-size:13px;font-weight:500;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;transition:.15s}
+.detail-tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+
+/* ── RECEIPT TABLE ── */
+.receipt-table{width:100%}
+.receipt-head{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 80px;padding:8px 16px;background:var(--light);border-bottom:1px solid var(--border);font-size:11px;font-weight:600;color:var(--muted)}
+.receipt-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 80px;padding:12px 16px;border-bottom:1px solid var(--border);align-items:center;font-size:13px}
+.receipt-row:last-child{border-bottom:none}
+.receipt-row.unacked{background:#fffbeb}
+.avatar{width:28px;height:28px;border-radius:50%;background:var(--blue-bg);color:var(--blue);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.emp-cell{display:flex;align-items:center;gap:8px}
+.tick{font-size:14px}
+.tick.green{color:var(--green)}
+.tick.gray{color:#d1d5db}
+.tick.red{color:var(--red)}
+
+/* ── BULK BAR ── */
+.bulk-bar{background:var(--blue);color:#fff;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;font-size:13px}
+.bulk-bar .count{font-weight:600}
+
+/* ── CREATE DRAWER ── */
+.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:100;display:flex;align-items:stretch;justify-content:flex-start}
+.drawer{width:600px;background:var(--surface);height:100%;overflow-y:auto;display:flex;flex-direction:column;box-shadow:-4px 0 24px rgba(0,0,0,.15)}
+.drawer-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.drawer-header h2{font-size:18px;font-weight:700}
+.drawer-body{flex:1;padding:24px;display:flex;flex-direction:column;gap:20px;overflow-y:auto}
+.drawer-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-start;flex-shrink:0}
+.field-group{display:flex;flex-direction:column;gap:6px}
+.field-label{font-size:13px;font-weight:600;color:var(--text)}
+.field-sub{font-size:11px;color:var(--muted)}
+.field-input{border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:14px;font-family:inherit;width:100%;background:var(--surface);color:var(--text);resize:vertical}
+.field-input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.priority-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.priority-option{border:2px solid var(--border);border-radius:8px;padding:12px;cursor:pointer;text-align:center;transition:.15s}
+.priority-option:hover{border-color:#93c5fd}
+.priority-option.selected.high{border-color:var(--red);background:var(--red-bg)}
+.priority-option.selected.medium{border-color:var(--amber);background:var(--amber-bg)}
+.priority-option.selected.low{border-color:#9ca3af;background:#f3f4f6}
+.priority-option .icon{font-size:20px;margin-bottom:4px}
+.priority-option .name{font-size:13px;font-weight:600;margin-bottom:2px}
+.priority-option .desc{font-size:11px;color:var(--muted)}
+
+/* ── AUDIENCE BUILDER ── */
+.audience-builder{border:1px solid var(--border);border-radius:8px;padding:16px;background:var(--light)}
+.audience-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.audience-chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:16px;font-size:12px;font-weight:500;background:var(--blue-bg);color:var(--blue);border:1px solid #93c5fd}
+.audience-chip .remove{cursor:pointer;opacity:.6;margin-right:-2px}
+.audience-chip .remove:hover{opacity:1}
+.audience-add{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:16px;font-size:12px;cursor:pointer;border:1.5px dashed #93c5fd;color:var(--blue);background:transparent}
+.audience-add:hover{background:var(--blue-bg)}
+.audience-preview{margin-top:12px;padding:10px 14px;background:var(--green-bg);border-radius:8px;font-size:13px;font-weight:600;color:var(--green)}
+
+/* ── LINK BLOCK ── */
+.link-block{border:1px solid var(--border);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.link-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* ── REMINDER ── */
+.reminder-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.reminder-box{border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;background:var(--light)}
+.reminder-box .val{font-size:22px;font-weight:700;color:var(--blue)}
+.reminder-box .unit{font-size:11px;color:var(--muted)}
+
+/* ── PHONE FRAME ── */
+.phone-preview{width:280px;flex-shrink:0}
+.phone-frame{border:8px solid #1a1a2e;border-radius:36px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3);background:#e5ddd5}
+.wa-header{background:#075E54;padding:12px 14px;display:flex;align-items:center;gap:10px}
+.wa-header .bot-name{color:#fff;font-weight:600;font-size:14px}
+.wa-header .bot-sub{color:rgba(255,255,255,.7);font-size:11px}
+.wa-header .bot-dot{width:32px;height:32px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.wa-body{padding:12px;min-height:300px;display:flex;flex-direction:column;gap:8px;background:#e5ddd5}
+.bubble{max-width:85%;padding:8px 12px;border-radius:12px;font-size:13px;line-height:1.5}
+.bubble.bot{background:#fff;border-radius:12px 12px 12px 0;align-self:flex-start}
+.bubble.user{background:#dcf8c6;border-radius:12px 12px 0 12px;align-self:flex-end}
+.bubble .time{font-size:10px;color:var(--muted);text-align:left;margin-top:4px}
+.wa-btn{background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:8px 12px;font-size:12px;color:var(--blue);text-align:center;cursor:pointer;margin-top:2px}
+
+/* ── TABS ── */
+.view-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:24px}
+.view-tab{padding:10px 20px;font-size:14px;font-weight:500;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;transition:.15s}
+.view-tab.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:600}
+
+/* ── MISC ── */
+.badge{display:inline-flex;align-items:center;padding:1px 7px;border-radius:10px;font-size:11px;font-weight:600}
+.badge.link{background:#ede9fe;color:#7c3aed}
+.empty{text-align:center;padding:40px;color:var(--muted);font-size:14px}
+.divider{height:1px;background:var(--border);margin:4px 0}
+select.field-input{appearance:none}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-logo">Biz<span>Flow</span> ERP</div>
+    <div class="nav-section">תקשורת</div>
+    <div class="nav-item active">📢 ניוז-פיד</div>
+    <div class="nav-item">💬 WhatsApp Bot</div>
+    <div class="nav-item">📋 תבניות</div>
+    <div class="divider" style="margin:8px 0"></div>
+    <div class="nav-section">ניהול</div>
+    <div class="nav-item">👥 עובדים</div>
+    <div class="nav-item">📅 משמרות</div>
+    <div class="nav-item">⚙️ הגדרות</div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div>
+        <div class="topbar-title">📢 ניוז-פיד — תקשורת עובדים</div>
+        <div class="topbar-sub">שליחת עדכונים, מעקב קריאה וניהול תקשורת יזומה</div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-ghost btn-sm" onclick="showSettings()">⚙️ הגדרות תבנית</button>
+        <button class="btn btn-primary" onclick="openDrawer()">+ שדר עדכון חדש</button>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content" id="mainContent">
+
+      <!-- VIEW TABS -->
+      <div class="view-tabs">
+        <div class="view-tab active" onclick="switchView('list',this)">📋 כל השידורים</div>
+        <div class="view-tab" onclick="switchView('analytics',this)">📊 אנליטיקה</div>
+      </div>
+
+      <!-- STATS ROW -->
+      <div class="stats-row">
+        <div class="stat-card blue">
+          <div class="stat-label">שידורים החודש</div>
+          <div class="stat-value">12</div>
+          <div class="stat-sub">↑ 3 לעומת חודש שעבר</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-label">ממוצע אישורי קריאה</div>
+          <div class="stat-value">84%</div>
+          <div class="stat-sub">מתוך כלל הנמענים</div>
+        </div>
+        <div class="stat-card amber">
+          <div class="stat-label">ממתינים לאישור</div>
+          <div class="stat-value">7</div>
+          <div class="stat-sub">ב-2 שידורים פעילים</div>
+        </div>
+        <div class="stat-card purple">
+          <div class="stat-label">קישורים נלחצו</div>
+          <div class="stat-value">31</div>
+          <div class="stat-sub">מתוך 40 שנשלחו</div>
+        </div>
+      </div>
+
+      <!-- BROADCAST LIST VIEW -->
+      <div id="listView">
+        <div class="section-header">
+          <div class="section-title">שידורים אחרונים</div>
+          <div class="filters">
+            <div class="filter-chip active" onclick="filterAll(this)">הכל</div>
+            <div class="filter-chip" onclick="filterBy(this,'high')">🔴 דחוף</div>
+            <div class="filter-chip" onclick="filterBy(this,'medium')">🟡 בינוני</div>
+            <div class="filter-chip" onclick="filterBy(this,'low')">⚪ נמוך</div>
+            <div class="filter-chip" onclick="filterBy(this,'draft')">✏️ טיוטה</div>
+          </div>
+        </div>
+
+        <div class="broadcast-table">
+          <div class="table-head">
+            <span>נושא ועדכון</span>
+            <span>עדיפות</span>
+            <span>קהל יעד</span>
+            <span>נמסר / אושר</span>
+            <span>קישור</span>
+            <span>פעולות</span>
+          </div>
+
+          <!-- ROW 1 — sent, high, with link -->
+          <div class="broadcast-row" onclick="openDetail(0)">
+            <div class="broadcast-title-col">
+              <div class="title">נוהל גלידת השף — חובה לקרוא</div>
+              <div class="meta">
+                <span>שאקי כהן</span>
+                <span>·</span>
+                <span>13/05 14:28</span>
+                <span><span class="status sent">נשלח</span></span>
+              </div>
+            </div>
+            <div><span class="priority high">🔴 דחוף</span></div>
+            <div style="font-size:13px">
+              <div>כל הסניפים</div>
+              <div style="color:var(--muted);font-size:11px">18 עובדים</div>
+            </div>
+            <div>
+              <div class="progress-wrap">
+                <div style="font-size:12px;font-weight:600">15/18 <span style="color:var(--green)">✓</span></div>
+                <div class="progress-bar"><div class="progress-fill" style="width:83%"></div></div>
+                <div class="progress-label">83% אישרו קריאה</div>
+              </div>
+            </div>
+            <div><span class="badge link">🔗 סרטון</span><div style="font-size:11px;color:var(--purple);margin-top:2px">12 לחיצות</div></div>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openDetail(0)">👁️ פרטים</button>
+            </div>
+          </div>
+
+          <!-- ROW 2 — sent, medium, no link -->
+          <div class="broadcast-row" onclick="openDetail(1)">
+            <div class="broadcast-title-col">
+              <div class="title">מחירון בירת בוטיק עודכן</div>
+              <div class="meta">
+                <span>שאקי כהן</span>
+                <span>·</span>
+                <span>12/05 17:15</span>
+                <span><span class="status sent">נשלח</span></span>
+              </div>
+            </div>
+            <div><span class="priority medium">🟡 בינוני</span></div>
+            <div style="font-size:13px">
+              <div>מלצרים · כל הסניפים</div>
+              <div style="color:var(--muted);font-size:11px">11 עובדים</div>
+            </div>
+            <div>
+              <div class="progress-wrap">
+                <div style="font-size:12px;font-weight:600">9/11 <span style="color:var(--green)">✓</span></div>
+                <div class="progress-bar"><div class="progress-fill" style="width:82%"></div></div>
+                <div class="progress-label">82% אישרו קריאה</div>
+              </div>
+            </div>
+            <div style="color:var(--muted);font-size:12px">—</div>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();sendReminder(event)">🔁 תזכורת (2)</button>
+            </div>
+          </div>
+
+          <!-- ROW 3 — sent, low -->
+          <div class="broadcast-row" onclick="openDetail(2)">
+            <div class="broadcast-title-col">
+              <div class="title">שינוי שעות סגירה — יום ג'</div>
+              <div class="meta">
+                <span>שאקי כהן</span>
+                <span>·</span>
+                <span>12/05 16:40</span>
+                <span><span class="status sent">נשלח</span></span>
+              </div>
+            </div>
+            <div><span class="priority low">⚪ נמוך</span></div>
+            <div style="font-size:13px">
+              <div>סניף תל אביב</div>
+              <div style="color:var(--muted);font-size:11px">8 עובדים</div>
+            </div>
+            <div>
+              <div class="progress-wrap">
+                <div style="font-size:12px;font-weight:600">8/8 <span style="color:var(--green)">✓</span></div>
+                <div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>
+                <div class="progress-label">100% ראו (אוטומטי)</div>
+              </div>
+            </div>
+            <div style="color:var(--muted);font-size:12px">—</div>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openDetail(2)">👁️ פרטים</button>
+            </div>
+          </div>
+
+          <!-- ROW 4 — draft -->
+          <div class="broadcast-row" onclick="openDrawer()">
+            <div class="broadcast-title-col">
+              <div class="title">עדכון נוהל ניקוי ציוד</div>
+              <div class="meta">
+                <span>שאקי כהן</span>
+                <span>·</span>
+                <span>12/05</span>
+                <span><span class="status draft">טיוטה</span></span>
+              </div>
+            </div>
+            <div><span class="priority medium">🟡 בינוני</span></div>
+            <div style="font-size:13px">
+              <div>מטבח · כל הסניפים</div>
+              <div style="color:var(--muted);font-size:11px">6 עובדים</div>
+            </div>
+            <div style="color:var(--muted);font-size:12px">—</div>
+            <div style="color:var(--muted);font-size:12px">—</div>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openDrawer()">✏️ ערוך ושלח</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- DETAIL PANEL — shown on row click -->
+        <div class="detail-panel" id="detailPanel" style="display:none">
+          <div class="detail-header">
+            <div>
+              <div class="detail-title" id="detailTitle">נוהל גלידת השף — חובה לקרוא</div>
+              <div style="font-size:13px;color:var(--muted);margin-top:4px">13/05 · 18 נמענים · <span class="priority high" style="font-size:11px">🔴 דחוף</span></div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <button class="btn btn-ghost btn-sm" onclick="closeDetail()">✕ סגור</button>
+            </div>
+          </div>
+
+          <div class="detail-tabs">
+            <div class="detail-tab active" onclick="detailTab('receipts',this)">📋 נמענים ומעקב</div>
+            <div class="detail-tab" onclick="detailTab('message',this)">💬 תוכן ההודעה</div>
+            <div class="detail-tab" onclick="detailTab('retries',this)">🔁 ניסיונות חוזרים</div>
+          </div>
+
+          <!-- RECEIPTS SUB-VIEW -->
+          <div id="receiptsView">
+            <!-- Bulk bar — shows when rows selected -->
+            <div class="bulk-bar" id="bulkBar" style="display:none">
+              <span class="count" id="bulkCount">2 נמענים נבחרו</span>
+              <div style="display:flex;gap:8px">
+                <button class="btn btn-ghost btn-sm" style="color:#fff;border-color:rgba(255,255,255,.4)" onclick="hideBulkBar()">ביטול</button>
+                <button class="btn btn-sm" style="background:#fff;color:var(--blue);font-weight:600" onclick="sendBulkReminder()">📨 שלח תזכורת לנבחרים</button>
+              </div>
+            </div>
+
+            <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+              <div style="display:flex;gap:8px">
+                <div class="filter-chip active" style="font-size:11px" onclick="filterReceipts('all',this)">הכל (18)</div>
+                <div class="filter-chip" style="font-size:11px" onclick="filterReceipts('unacked',this)">⏳ טרם אישרו (3)</div>
+                <div class="filter-chip" style="font-size:11px" onclick="filterReceipts('clicked',this)">🔗 לחצו קישור (12)</div>
+                <div class="filter-chip" style="font-size:11px" onclick="filterReceipts('failed',this)">❌ נכשל</div>
+              </div>
+              <button class="btn btn-ghost btn-sm" onclick="sendReminderAll()">📨 תזכורת לכל מי שלא אישר</button>
+            </div>
+
+            <div class="receipt-head">
+              <span><input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)"> &nbsp;עובד</span>
+              <span>נמסר</span>
+              <span>אישר קריאה</span>
+              <span>לחץ קישור</span>
+              <span>סניף</span>
+              <span></span>
+            </div>
+
+            <div id="receiptRows">
+              <!-- row: acked + clicked -->
+              <div class="receipt-row" data-status="acked">
+                <div class="emp-cell"><input type="checkbox" class="row-check" onchange="updateBulkBar()"> <div class="avatar">ד"ל</div><div><div style="font-weight:600;font-size:13px">דניאל לוי</div><div style="font-size:11px;color:var(--muted)">מלצר</div></div></div>
+                <div><span class="tick green">✓✓</span> <span style="font-size:11px;color:var(--muted)">14:31</span></div>
+                <div><span class="tick green">✓</span> <span style="font-size:11px;color:var(--muted)">14:32</span></div>
+                <div><span class="tick green">✓</span> <span style="font-size:11px;color:var(--muted)">14:35</span></div>
+                <div style="font-size:12px">ת"א</div>
+                <div></div>
+              </div>
+              <!-- row: acked, no click -->
+              <div class="receipt-row" data-status="acked">
+                <div class="emp-cell"><input type="checkbox" class="row-check" onchange="updateBulkBar()"> <div class="avatar">מ"כ</div><div><div style="font-weight:600;font-size:13px">מיה כץ</div><div style="font-size:11px;color:var(--muted)">מנהלת משמרת</div></div></div>
+                <div><span class="tick green">✓✓</span> <span style="font-size:11px;color:var(--muted)">14:30</span></div>
+                <div><span class="tick green">✓</span> <span style="font-size:11px;color:var(--muted)">14:41</span></div>
+                <div><span class="tick gray">—</span></div>
+                <div style="font-size:12px">ירושלים</div>
+                <div></div>
+              </div>
+              <!-- row: unacked -->
+              <div class="receipt-row unacked" data-status="unacked">
+                <div class="emp-cell"><input type="checkbox" class="row-check" onchange="updateBulkBar()"> <div class="avatar">א"מ</div><div><div style="font-weight:600;font-size:13px">אחמד מחמד</div><div style="font-size:11px;color:var(--muted)">טבח</div></div></div>
+                <div><span class="tick green">✓✓</span> <span style="font-size:11px;color:var(--muted)">14:30</span></div>
+                <div><span class="tick gray">⏳</span> <span style="font-size:11px;color:var(--amber)">ממתין</span></div>
+                <div><span class="tick gray">—</span></div>
+                <div style="font-size:12px">ת"א</div>
+                <div><button class="btn btn-ghost btn-sm" onclick="sendSingleReminder(this)">תזכורת</button></div>
+              </div>
+              <!-- row: failed -->
+              <div class="receipt-row" data-status="failed" style="background:#fff5f5">
+                <div class="emp-cell"><input type="checkbox" class="row-check" onchange="updateBulkBar()"> <div class="avatar" style="background:var(--red-bg);color:var(--red)">ר"ב</div><div><div style="font-weight:600;font-size:13px">רחל בן-דוד</div><div style="font-size:11px;color:var(--muted)">קופאית</div></div></div>
+                <div><span class="tick red">✕</span> <span style="font-size:11px;color:var(--red)">נכשל</span></div>
+                <div><span class="tick gray">—</span></div>
+                <div><span class="tick gray">—</span></div>
+                <div style="font-size:12px">ת"א</div>
+                <div><button class="btn btn-danger btn-sm" onclick="retryOne(this)">נסה שוב</button></div>
+              </div>
+              <!-- row: unacked #2 -->
+              <div class="receipt-row unacked" data-status="unacked">
+                <div class="emp-cell"><input type="checkbox" class="row-check" onchange="updateBulkBar()"> <div class="avatar">י"כ</div><div><div style="font-weight:600;font-size:13px">יוסי כהן</div><div style="font-size:11px;color:var(--muted)">טבח</div></div></div>
+                <div><span class="tick green">✓✓</span> <span style="font-size:11px;color:var(--muted)">14:31</span></div>
+                <div><span class="tick gray">⏳</span> <span style="font-size:11px;color:var(--amber)">ממתין</span></div>
+                <div><span class="tick gray">—</span></div>
+                <div style="font-size:12px">ירושלים</div>
+                <div><button class="btn btn-ghost btn-sm" onclick="sendSingleReminder(this)">תזכורת</button></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- MESSAGE SUB-VIEW (hidden) -->
+          <div id="messageView" style="display:none;padding:20px">
+            <div style="display:grid;grid-template-columns:1fr 280px;gap:24px;align-items:start">
+              <div>
+                <div class="field-group">
+                  <div class="field-label">תוכן ההודעה</div>
+                  <div style="background:var(--light);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:14px;line-height:1.7;white-space:pre-wrap">📢 *עדכון מנהל — חובה לקרוא*
+
+נוהל חדש: גלידת השף
+
+החל מחר — גלידת השף מוגשת עם 2 קינואה קרקרים בצד. צלחת, לא קופסת קרטון!
+
+🎥 סרטון הדגמה: go.humongous.co.il/bc-a1b2</div>
+                </div>
+                <div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                  <div class="field-group">
+                    <div class="field-label">תבנית WhatsApp</div>
+                    <div style="font-size:13px;padding:8px 12px;background:var(--light);border-radius:6px;border:1px solid var(--border)">broadcast_update_v1 <span style="color:var(--green)">✓ מאושר</span></div>
+                  </div>
+                  <div class="field-group">
+                    <div class="field-label">קישור מעוקב</div>
+                    <div style="font-size:13px;padding:8px 12px;background:var(--light);border-radius:6px;border:1px solid var(--border)">go.humongous.co.il/bc-a1b2 <span class="badge link">🔗</span></div>
+                  </div>
+                </div>
+              </div>
+              <div class="phone-preview">
+                <div class="phone-frame">
+                  <div class="wa-header">
+                    <div class="bot-dot">🍕</div>
+                    <div><div class="bot-name">BizFlow Bot</div><div class="bot-sub">מחובר</div></div>
+                  </div>
+                  <div class="wa-body">
+                    <div class="bubble bot">📢 <strong>עדכון מנהל — חובה לקרוא</strong><br><br>נוהל חדש: גלידת השף<br><br>החל מחר — גלידת השף מוגשת עם 2 קינואה קרקרים בצד. צלחת, לא קופסת קרטון!<br><br>🎥 <a href="#" style="color:var(--blue)">go.humongous.co.il/bc-a1b2</a><div class="time">14:28 ✓✓</div></div>
+                    <div class="wa-btn">✅ הבנתי, אישרתי קריאה</div>
+                    <div class="bubble user">✅ הבנתי, אישרתי קריאה<div class="time">14:32 ✓✓</div></div>
+                    <div class="bubble bot">✓ קריאתך נרשמה — 14:32<br>תודה! המשך משמרת מוצלחת 😊<div class="time">14:32 ✓✓</div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- RETRIES SUB-VIEW (hidden) -->
+          <div id="retriesView" style="display:none;padding:20px">
+            <div style="margin-bottom:16px;font-size:13px;color:var(--muted)">לוג ניסיונות שליחה חוזרים ותזכורות</div>
+            <div class="broadcast-table">
+              <div class="table-head" style="grid-template-columns:2fr 1fr 1fr 1fr">
+                <span>עובד</span><span>ניסיון</span><span>זמן</span><span>סטטוס</span>
+              </div>
+              <div class="broadcast-row" style="grid-template-columns:2fr 1fr 1fr 1fr">
+                <div class="emp-cell"><div class="avatar" style="background:var(--red-bg);color:var(--red)">ר"ב</div> רחל בן-דוד</div>
+                <div style="font-size:13px">שליחה ראשונה</div>
+                <div style="font-size:12px;color:var(--muted)">14:28:01</div>
+                <div><span class="status" style="background:var(--red-bg);color:var(--red)">❌ נכשל</span></div>
+              </div>
+              <div class="broadcast-row" style="grid-template-columns:2fr 1fr 1fr 1fr">
+                <div class="emp-cell"><div class="avatar" style="background:var(--red-bg);color:var(--red)">ר"ב</div> רחל בן-דוד</div>
+                <div style="font-size:13px">ניסיון חוזר #1</div>
+                <div style="font-size:12px;color:var(--muted)">14:29:01</div>
+                <div><span class="status" style="background:var(--red-bg);color:var(--red)">❌ נכשל</span></div>
+              </div>
+              <div class="broadcast-row" style="grid-template-columns:2fr 1fr 1fr 1fr">
+                <div class="emp-cell"><div class="avatar">א"מ</div> אחמד מחמד</div>
+                <div style="font-size:13px">תזכורת #1</div>
+                <div style="font-size:12px;color:var(--muted)">18:30:00</div>
+                <div><span class="status sent">✓ נמסר</span></div>
+              </div>
+              <div class="broadcast-row" style="grid-template-columns:2fr 1fr 1fr 1fr;background:#fffbeb">
+                <div class="emp-cell"><div class="avatar">י"כ</div> יוסי כהן</div>
+                <div style="font-size:13px">תזכורת #1</div>
+                <div style="font-size:12px;color:var(--muted)">18:30:00</div>
+                <div><span class="status sent">✓ נמסר</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ANALYTICS VIEW (hidden) -->
+      <div id="analyticsView" style="display:none">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+          <div class="broadcast-table" style="padding:20px">
+            <div class="section-title" style="margin-bottom:16px">שיעור קריאה לפי עדיפות</div>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>🔴 דחוף</span><span style="font-weight:600;color:var(--green)">91%</span></div>
+                <div class="progress-bar" style="height:8px"><div class="progress-fill" style="width:91%"></div></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>🟡 בינוני</span><span style="font-weight:600;color:var(--amber)">78%</span></div>
+                <div class="progress-bar" style="height:8px"><div class="progress-fill" style="width:78%;background:var(--amber)"></div></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>⚪ נמוך</span><span style="font-weight:600;color:var(--muted)">100%</span></div>
+                <div class="progress-bar" style="height:8px"><div class="progress-fill" style="width:100%;background:#9ca3af"></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="broadcast-table" style="padding:20px">
+            <div class="section-title" style="margin-bottom:16px">קליקים על קישורים לפי שידור</div>
+            <div style="display:flex;flex-direction:column;gap:10px;font-size:13px">
+              <div style="display:flex;justify-content:space-between;align-items:center"><span>נוהל גלידת השף</span><span style="font-weight:600;color:var(--purple)">12/18 קליקים</span></div>
+              <div style="display:flex;justify-content:space-between;align-items:center"><span>סרטון הכשרת בטיחות</span><span style="font-weight:600;color:var(--purple)">19/22 קליקים</span></div>
+              <div style="display:flex;justify-content:space-between;align-items:center"><span>מדריך פתיחת משמרת</span><span style="font-weight:600;color:var(--purple)">0/8 קליקים</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ── CREATE BROADCAST DRAWER ── -->
+<div class="drawer-overlay" id="drawerOverlay" style="display:none" onclick="closeDrawerOutside(event)">
+  <div class="drawer">
+    <div class="drawer-header">
+      <h2>📢 שדר עדכון חדש</h2>
+      <button class="btn btn-ghost btn-sm" onclick="closeDrawer()">✕</button>
+    </div>
+    <div class="drawer-body">
+
+      <!-- PRIORITY -->
+      <div class="field-group">
+        <div class="field-label">עדיפות</div>
+        <div class="field-sub">קובעת מתי ואיך ההודעה תגיע לעובד</div>
+        <div class="priority-row">
+          <div class="priority-option selected high" onclick="selectPriority('high',this)">
+            <div class="icon">🔴</div>
+            <div class="name">דחוף</div>
+            <div class="desc">שליחה מיידית, דורש אישור קריאה</div>
+          </div>
+          <div class="priority-option medium" onclick="selectPriority('medium',this)">
+            <div class="icon">🟡</div>
+            <div class="name">בינוני</div>
+            <div class="desc">ניוז-פיד בכניסה הבאה לבוט</div>
+          </div>
+          <div class="priority-option low" onclick="selectPriority('low',this)">
+            <div class="icon">⚪</div>
+            <div class="name">נמוך</div>
+            <div class="desc">מוצג בשקט, נקרא אוטומטית</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TITLE -->
+      <div class="field-group">
+        <div class="field-label">נושא / כותרת</div>
+        <input class="field-input" type="text" placeholder='למשל: "נוהל חדש — גלידת השף"' value="נוהל גלידת השף — חובה לקרוא">
+      </div>
+
+      <!-- BODY -->
+      <div class="field-group">
+        <div class="field-label">תוכן ההודעה</div>
+        <textarea class="field-input" rows="4" placeholder="תוכן ההודעה שיישלח לעובדים...">החל מחר — גלידת השף מוגשת עם 2 קינואה קרקרים בצד. צלחת, לא קופסת קרטון!</textarea>
+      </div>
+
+      <!-- LINK -->
+      <div class="field-group">
+        <div class="field-label">קישור חיצוני (אופציונלי) <span class="badge link">🔗 מעוקב</span></div>
+        <div class="field-sub">הקישור עובר דרך short.io → Base44 → מעקב לחיצות לפי עובד</div>
+        <div class="link-block">
+          <div class="link-row">
+            <input class="field-input" type="text" placeholder="URL (יוטיוב, PDF, מצגת...)" value="https://youtube.com/watch?v=demo">
+            <input class="field-input" type="text" placeholder="תווית כפתור CTA" value="🎥 צפה בסרטון הדגמה">
+          </div>
+          <div style="font-size:12px;color:var(--purple);display:flex;align-items:center;gap:6px">
+            <span>🔗</span> go.humongous.co.il/bc-{token} ← יווצר אוטומטית לכל עובד
+          </div>
+        </div>
+      </div>
+
+      <!-- AUDIENCE -->
+      <div class="field-group">
+        <div class="field-label">קהל יעד</div>
+        <div class="field-sub">בחר סניפים, תפקידים ו/או עובדים ספציפיים</div>
+        <div class="audience-builder">
+          <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px">סניפים</div>
+          <div class="audience-row">
+            <div class="audience-chip">🏪 סניף תל אביב <span class="remove" onclick="this.parentElement.remove()">×</span></div>
+            <div class="audience-chip">🏪 סניף ירושלים <span class="remove" onclick="this.parentElement.remove()">×</span></div>
+            <div class="audience-add" onclick="alert('בחירת סניפים')">+ הוסף סניף</div>
+          </div>
+          <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px;margin-top:8px">תפקידים</div>
+          <div class="audience-row">
+            <div class="audience-chip" style="background:var(--purple-bg);color:var(--purple);border-color:#c4b5fd">👨‍🍳 טבחים <span class="remove">×</span></div>
+            <div class="audience-chip" style="background:var(--purple-bg);color:var(--purple);border-color:#c4b5fd">🍽️ מלצרים <span class="remove">×</span></div>
+            <div class="audience-add" style="border-color:#c4b5fd;color:var(--purple)" onclick="alert('בחירת תפקידים')">+ הוסף תפקיד</div>
+          </div>
+          <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px;margin-top:8px">עובדים ספציפיים</div>
+          <div class="audience-row">
+            <div class="audience-add" style="border-color:#86efac;color:var(--green)" onclick="alert('בחירת עובדים')">+ הוסף עובד</div>
+          </div>
+          <div class="audience-preview">👥 18 עובדים ייקבלו את ההודעה (אחרי הסרת כפילויות)</div>
+        </div>
+      </div>
+
+      <!-- REMINDER CONFIG -->
+      <div class="field-group">
+        <div class="field-label">תזכורות אוטומטיות לאי-אישור</div>
+        <div class="field-sub">למי שלא לחץ "הבנתי" — יישלחו תזכורות אוטומטיות</div>
+        <div class="reminder-grid">
+          <div class="reminder-box">
+            <div class="val">4</div>
+            <div class="unit">שעות — תזכורת ראשונה</div>
+          </div>
+          <div class="reminder-box">
+            <div class="val">24</div>
+            <div class="unit">שעות — תזכורת שנייה</div>
+          </div>
+          <div class="reminder-box">
+            <div class="val" style="color:var(--muted)">2</div>
+            <div class="unit">מקס׳ תזכורות</div>
+          </div>
+        </div>
+        <div style="margin-top:8px;font-size:12px;color:var(--muted)">⚙️ ברירת מחדל לפי הגדרות המערכת — ניתן לשנות כאן לשידור זה בלבד</div>
+      </div>
+
+    </div>
+    <div class="drawer-footer">
+      <button class="btn btn-primary" onclick="sendBroadcast()">📤 שדר עכשיו ל-18 עובדים</button>
+      <button class="btn btn-ghost" onclick="saveDraft()">💾 שמור טיוטה</button>
+      <button class="btn btn-ghost" onclick="closeDrawer()">ביטול</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── SETTINGS MODAL ── -->
+<div class="drawer-overlay" id="settingsOverlay" style="display:none" onclick="closeSettingsOutside(event)">
+  <div class="drawer" style="width:520px">
+    <div class="drawer-header">
+      <h2>⚙️ הגדרות תבנית שידור</h2>
+      <button class="btn btn-ghost btn-sm" onclick="closeSettings()">✕</button>
+    </div>
+    <div class="drawer-body">
+      <div class="field-group">
+        <div class="field-label">תבנית WhatsApp פעילה לשידורים דחופים</div>
+        <div class="field-sub">תבנית זו משמשת לשליחת הודעות High-Priority מחוץ לחלון 24 שעות של Meta</div>
+        <select class="field-input">
+          <option>broadcast_update_v1 ✓ (מאושר)</option>
+          <option>broadcast_generic_he</option>
+        </select>
+      </div>
+      <div style="background:var(--light);border:1px solid var(--border);border-radius:8px;padding:14px">
+        <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:10px">מיפוי Placeholder-ים</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:grid;grid-template-columns:80px 1fr 1fr;gap:8px;align-items:center;font-size:12px">
+            <span style="font-weight:600;color:var(--purple)">{"{"}{"{"}1{"}"}{"}"}}</span>
+            <span style="color:var(--muted)">שם העובד</span>
+            <select class="field-input" style="font-size:12px;padding:4px 8px"><option>employee.firstName</option></select>
+          </div>
+          <div style="display:grid;grid-template-columns:80px 1fr 1fr;gap:8px;align-items:center;font-size:12px">
+            <span style="font-weight:600;color:var(--purple)">{"{"}{"{"}2{"}"}{"}"}}</span>
+            <span style="color:var(--muted)">נושא השידור</span>
+            <select class="field-input" style="font-size:12px;padding:4px 8px"><option>broadcast.title</option></select>
+          </div>
+          <div style="display:grid;grid-template-columns:80px 1fr 1fr;gap:8px;align-items:center;font-size:12px">
+            <span style="font-weight:600;color:var(--purple)">{"{"}{"{"}3{"}"}{"}"}}</span>
+            <span style="color:var(--muted)">תוכן / digest</span>
+            <select class="field-input" style="font-size:12px;padding:4px 8px"><option>broadcast.digest</option><option>broadcast.body</option></select>
+          </div>
+          <div style="display:grid;grid-template-columns:80px 1fr 1fr;gap:8px;align-items:center;font-size:12px">
+            <span style="font-weight:600;color:var(--purple)">{"{"}{"{"}4{"}"}{"}"}}</span>
+            <span style="color:var(--muted)">קישור מעוקב</span>
+            <select class="field-input" style="font-size:12px;padding:4px 8px"><option>broadcast.trackedLink</option></select>
+          </div>
+        </div>
+      </div>
+      <div class="field-group">
+        <div class="field-label">הגדרות תזכורת ברירת מחדל</div>
+        <div class="reminder-grid">
+          <div class="reminder-box" style="cursor:pointer" onclick="this.querySelector('.val').contentEditable='true';this.querySelector('.val').focus()">
+            <div class="val" contenteditable="false">4</div>
+            <div class="unit">שעות — תזכורת א'</div>
+          </div>
+          <div class="reminder-box">
+            <div class="val">24</div>
+            <div class="unit">שעות — תזכורת ב'</div>
+          </div>
+          <div class="reminder-box">
+            <div class="val">2</div>
+            <div class="unit">מקסימום תזכורות</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="drawer-footer">
+      <button class="btn btn-primary" onclick="closeSettings()">שמור הגדרות</button>
+      <button class="btn btn-ghost" onclick="closeSettings()">ביטול</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let detailOpen = false;
+
+function openDrawer(){document.getElementById('drawerOverlay').style.display='flex'}
+function closeDrawer(){document.getElementById('drawerOverlay').style.display='none'}
+function closeDrawerOutside(e){if(e.target===document.getElementById('drawerOverlay'))closeDrawer()}
+function showSettings(){document.getElementById('settingsOverlay').style.display='flex'}
+function closeSettings(){document.getElementById('settingsOverlay').style.display='none'}
+function closeSettingsOutside(e){if(e.target===document.getElementById('settingsOverlay'))closeSettings()}
+
+function selectPriority(p,el){
+  document.querySelectorAll('.priority-option').forEach(x=>x.className='priority-option '+x.getAttribute('onclick').match(/'(\w+)'/)[1]);
+  el.classList.add('selected');
+}
+
+function openDetail(i){
+  const panel=document.getElementById('detailPanel');
+  panel.style.display='block';
+  const titles=['נוהל גלידת השף — חובה לקרוא','מחירון בירת בוטיק עודכן','שינוי שעות סגירה — יום ג\''];
+  document.getElementById('detailTitle').textContent=titles[i]||titles[0];
+  panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+  detailOpen=true;
+}
+function closeDetail(){document.getElementById('detailPanel').style.display='none';detailOpen=false}
+
+function detailTab(name,el){
+  document.querySelectorAll('.detail-tab').forEach(x=>x.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('receiptsView').style.display=name==='receipts'?'block':'none';
+  document.getElementById('messageView').style.display=name==='message'?'block':'none';
+  document.getElementById('retriesView').style.display=name==='retries'?'block':'none';
+}
+
+function switchView(name,el){
+  document.querySelectorAll('.view-tab').forEach(x=>x.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('listView').style.display=name==='list'?'block':'none';
+  document.getElementById('analyticsView').style.display=name==='analytics'?'block':'none';
+}
+
+function filterReceipts(f,el){
+  document.querySelectorAll('#detailPanel .filter-chip').forEach(x=>x.classList.remove('active'));
+  el.classList.add('active');
+  const rows=document.querySelectorAll('#receiptRows .receipt-row');
+  rows.forEach(r=>{
+    if(f==='all')r.style.display='grid';
+    else if(f==='unacked')r.style.display=r.dataset.status==='unacked'?'grid':'none';
+    else if(f==='failed')r.style.display=r.dataset.status==='failed'?'grid':'none';
+    else if(f==='clicked')r.style.display=r.dataset.status==='acked'?'grid':'none';
+  });
+}
+
+function toggleSelectAll(cb){
+  document.querySelectorAll('.row-check').forEach(x=>x.checked=cb.checked);
+  updateBulkBar();
+}
+function updateBulkBar(){
+  const n=document.querySelectorAll('.row-check:checked').length;
+  const bar=document.getElementById('bulkBar');
+  bar.style.display=n>0?'flex':'none';
+  document.getElementById('bulkCount').textContent=n+' נמענים נבחרו';
+}
+function hideBulkBar(){document.querySelectorAll('.row-check').forEach(x=>x.checked=false);document.getElementById('bulkBar').style.display='none'}
+function sendBulkReminder(){alert('נשלחת תזכורת ל-'+document.querySelectorAll('.row-check:checked').length+' עובדים ✅');hideBulkBar()}
+function sendReminderAll(){alert('נשלחת תזכורת לכל מי שלא אישר קריאה ✅')}
+function sendSingleReminder(btn){btn.textContent='✓ נשלח';btn.disabled=true;btn.style.color='var(--green)'}
+function retryOne(btn){btn.textContent='⏳ מנסה...';btn.disabled=true;setTimeout(()=>{btn.textContent='✓ נשלח';btn.style.color='var(--green)'},1200)}
+function sendReminder(e){e.stopPropagation();alert('תזכורת נשלחה ל-2 עובדים שלא אישרו ✅')}
+function sendBroadcast(){closeDrawer();alert('📤 השידור נשלח ל-18 עובדים!')}
+function saveDraft(){closeDrawer();alert('💾 טיוטה נשמרה')}
+function filterAll(el){document.querySelectorAll('.filters .filter-chip').forEach(x=>x.classList.remove('active'));el.classList.add('active')}
+function filterBy(el,p){document.querySelectorAll('.filters .filter-chip').forEach(x=>x.classList.remove('active'));el.classList.add('active')}
+</script>
+</body>
+</html>

@@ -219,8 +219,6 @@
 </head>
 <body>
 
-<div id="gate">
-  <div class="gate-logo">📱</div>
   <h2>BizFlow — WhatsApp Bot Deck</h2>
   <p>הכנס סיסמה לצפייה</p>
   <input type="password" id="pwd" placeholder="••••••" autofocus>
@@ -260,6 +258,7 @@
   <a href="#research">מחקר</a>
   <a href="#demo">פיצ'רים</a>
   <a href="#new-features">חדש</a>
+  <a href="#dashboard">דשבורד</a>
   <a href="#summary">סיכום</a>
   <div class="logo">📱 BizFlow WhatsApp Bot</div>
 </nav>
@@ -769,6 +768,165 @@
     </div>
   </div>
 </section>
+
+
+<!-- DASHBOARD -->
+<section id="dashboard" style="background:#070f1a;min-height:100vh;padding:80px 4rem 4rem">
+  <div class="slide-label">04.5 — דשבורד ניהול</div>
+  <h2>Newsfeed Management — <span class="highlight">מרכז השליטה</span></h2>
+  <div class="section-divider"></div>
+
+  <div style="display:grid;grid-template-columns:320px 1fr;gap:3rem;align-items:start;max-width:1200px">
+
+    <!-- LEFT: Feature list -->
+    <div style="display:flex;flex-direction:column;gap:1.5rem">
+      <div class="arch-card" style="border-color:rgba(37,211,102,.25);background:rgba(37,211,102,.04)">
+        <div class="icon">📋</div>
+        <h4>רשימת שידורים</h4>
+        <p>טבלת כל השידורים עם priority badge, progress bar של אחוז הקריאה, ספירת קליקים על קישורים.</p>
+      </div>
+      <div class="arch-card" style="border-color:rgba(59,130,246,.25);background:rgba(59,130,246,.04)">
+        <div class="icon">👁️</div>
+        <h4>מעקב per-employee</h4>
+        <p>לכל שידור — טבלת נמענים עם 3 timestamps: <strong style="color:#74b9ff">נמסר ✓✓</strong> / <strong style="color:#25D366">אישר קריאה ✓</strong> / <strong style="color:#a78bfa">לחץ קישור 🔗</strong></p>
+      </div>
+      <div class="arch-card" style="border-color:rgba(245,158,11,.25);background:rgba(245,158,11,.04)">
+        <div class="icon">🔁</div>
+        <h4>Retry + תזכורות</h4>
+        <p>Bulk-select לעובדים שלא אישרו → "שלח תזכורת לנבחרים". Retry אוטומטי לשליחות שנכשלו (3x backoff).</p>
+      </div>
+      <div class="arch-card" style="border-color:rgba(239,68,68,.25);background:rgba(239,68,68,.04)">
+        <div class="icon">🎯</div>
+        <h4>Audience Builder</h4>
+        <p>בחירת קהל יעד: סניפים + תפקידים + עובדים ספציפיים. Preview בזמן אמת: "18 עובדים ייקבלו".</p>
+      </div>
+    </div>
+
+    <!-- RIGHT: Dashboard mockup -->
+    <div style="background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5);font-family:-apple-system,sans-serif;direction:rtl">
+
+      <!-- topbar -->
+      <div style="background:#1e293b;padding:12px 18px;display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-size:14px;font-weight:700;color:#f1f5f9">📢 ניוז-פיד — תקשורת עובדים</div>
+          <div style="font-size:11px;color:#64748b;margin-top:2px">שליחת עדכונים, מעקב קריאה וניהול תקשורת יזומה</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <span style="background:#3b82f6;color:#fff;padding:6px 14px;border-radius:7px;font-size:12px;font-weight:600">+ שדר עדכון חדש</span>
+        </div>
+      </div>
+
+      <!-- stats row -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid #e5e7eb">
+        <div style="padding:14px 16px;border-left:1px solid #e5e7eb;text-align:center">
+          <div style="font-size:24px;font-weight:700;color:#2563eb">12</div>
+          <div style="font-size:11px;color:#6b7280">שידורים החודש</div>
+        </div>
+        <div style="padding:14px 16px;border-left:1px solid #e5e7eb;text-align:center">
+          <div style="font-size:24px;font-weight:700;color:#16a34a">84%</div>
+          <div style="font-size:11px;color:#6b7280">ממוצע קריאה</div>
+        </div>
+        <div style="padding:14px 16px;border-left:1px solid #e5e7eb;text-align:center">
+          <div style="font-size:24px;font-weight:700;color:#d97706">7</div>
+          <div style="font-size:11px;color:#6b7280">ממתינים לאישור</div>
+        </div>
+        <div style="padding:14px 16px;text-align:center">
+          <div style="font-size:24px;font-weight:700;color:#7c3aed">31</div>
+          <div style="font-size:11px;color:#6b7280">קישורים נלחצו</div>
+        </div>
+      </div>
+
+      <!-- broadcast table header -->
+      <div style="display:grid;grid-template-columns:2fr 80px 90px 100px 100px;padding:8px 16px;background:#f9fafb;border-bottom:1px solid #e5e7eb;font-size:11px;font-weight:600;color:#6b7280">
+        <span>נושא ועדכון</span><span>עדיפות</span><span>קהל יעד</span><span>נמסר / אושר</span><span>קישור</span>
+      </div>
+
+      <!-- row 1 — high, with link -->
+      <div style="display:grid;grid-template-columns:2fr 80px 90px 100px 100px;padding:12px 16px;border-bottom:1px solid #f3f4f6;align-items:center;cursor:pointer">
+        <div>
+          <div style="font-size:13px;font-weight:600;color:#111827">נוהל גלידת השף</div>
+          <div style="font-size:11px;color:#6b7280;margin-top:2px">שאקי כהן · 13/05 · <span style="background:#dcfce7;color:#16a34a;padding:1px 6px;border-radius:8px;font-weight:600;font-size:10px">נשלח</span></div>
+        </div>
+        <span style="font-size:11px;font-weight:600;color:#dc2626;background:#fee2e2;padding:3px 8px;border-radius:10px;text-align:center">🔴 דחוף</span>
+        <div style="font-size:12px;color:#374151">כל הסניפים<div style="font-size:10px;color:#9ca3af">18 עובדים</div></div>
+        <div>
+          <div style="font-size:12px;font-weight:600;color:#111827">15/18</div>
+          <div style="height:5px;background:#e5e7eb;border-radius:3px;margin-top:3px"><div style="height:100%;width:83%;background:#16a34a;border-radius:3px"></div></div>
+        </div>
+        <div style="font-size:11px;color:#7c3aed;font-weight:600">🔗 12 קליקים</div>
+      </div>
+
+      <!-- row 2 — medium -->
+      <div style="display:grid;grid-template-columns:2fr 80px 90px 100px 100px;padding:12px 16px;border-bottom:1px solid #f3f4f6;align-items:center">
+        <div>
+          <div style="font-size:13px;font-weight:600;color:#111827">מחירון בירת בוטיק</div>
+          <div style="font-size:11px;color:#6b7280;margin-top:2px">שאקי כהן · 12/05 · <span style="background:#dcfce7;color:#16a34a;padding:1px 6px;border-radius:8px;font-weight:600;font-size:10px">נשלח</span></div>
+        </div>
+        <span style="font-size:11px;font-weight:600;color:#d97706;background:#fef3c7;padding:3px 8px;border-radius:10px;text-align:center">🟡 בינוני</span>
+        <div style="font-size:12px;color:#374151">מלצרים<div style="font-size:10px;color:#9ca3af">11 עובדים</div></div>
+        <div>
+          <div style="font-size:12px;font-weight:600;color:#111827">9/11</div>
+          <div style="height:5px;background:#e5e7eb;border-radius:3px;margin-top:3px"><div style="height:100%;width:82%;background:#16a34a;border-radius:3px"></div></div>
+        </div>
+        <span style="font-size:11px;color:#9ca3af">—</span>
+      </div>
+
+      <!-- row 3 — low, 100% -->
+      <div style="display:grid;grid-template-columns:2fr 80px 90px 100px 100px;padding:12px 16px;border-bottom:1px solid #e5e7eb;align-items:center">
+        <div>
+          <div style="font-size:13px;font-weight:600;color:#111827">שינוי שעות — יום ג'</div>
+          <div style="font-size:11px;color:#6b7280;margin-top:2px">שאקי כהן · 12/05</div>
+        </div>
+        <span style="font-size:11px;font-weight:600;color:#6b7280;background:#f3f4f6;padding:3px 8px;border-radius:10px;text-align:center">⚪ נמוך</span>
+        <div style="font-size:12px;color:#374151">סניף ת"א<div style="font-size:10px;color:#9ca3af">8 עובדים</div></div>
+        <div>
+          <div style="font-size:12px;font-weight:600;color:#16a34a">8/8 ✓</div>
+          <div style="height:5px;background:#e5e7eb;border-radius:3px;margin-top:3px"><div style="height:100%;width:100%;background:#16a34a;border-radius:3px"></div></div>
+        </div>
+        <span style="font-size:11px;color:#9ca3af">—</span>
+      </div>
+
+      <!-- receipt detail panel -->
+      <div style="background:#fffbeb;border-top:2px solid #fbbf24;padding:14px 16px">
+        <div style="font-size:12px;font-weight:700;color:#92400e;margin-bottom:10px">📋 מעקב נמענים — "נוהל גלידת השף" &nbsp;·&nbsp; <span style="color:#16a34a">15 אישרו</span> &nbsp;·&nbsp; <span style="color:#d97706">2 ממתינים</span> &nbsp;·&nbsp; <span style="color:#dc2626">1 נכשל</span></div>
+        <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 80px;font-size:10px;color:#6b7280;font-weight:600;margin-bottom:6px;padding:0 4px">
+          <span>עובד</span><span>נמסר</span><span>אישר קריאה</span><span>לחץ קישור</span><span></span>
+        </div>
+        <!-- acked + clicked -->
+        <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 80px;font-size:12px;align-items:center;padding:6px 4px;border-radius:6px;margin-bottom:3px">
+          <div style="display:flex;align-items:center;gap:8px"><div style="width:26px;height:26px;border-radius:50%;background:#dbeafe;color:#2563eb;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700">ד"ל</div><span style="font-weight:600">דניאל לוי</span></div>
+          <span style="color:#16a34a">✓✓ 14:31</span>
+          <span style="color:#16a34a">✓ 14:32</span>
+          <span style="color:#7c3aed">🔗 14:35</span>
+          <span></span>
+        </div>
+        <!-- unacked -->
+        <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 80px;font-size:12px;align-items:center;padding:6px 4px;border-radius:6px;background:#fff7ed;margin-bottom:3px">
+          <div style="display:flex;align-items:center;gap:8px"><div style="width:26px;height:26px;border-radius:50%;background:#dbeafe;color:#2563eb;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700">א"מ</div><span style="font-weight:600">אחמד מחמד</span></div>
+          <span style="color:#16a34a">✓✓ 14:30</span>
+          <span style="color:#d97706">⏳ ממתין</span>
+          <span style="color:#9ca3af">—</span>
+          <span style="font-size:11px;color:#2563eb;cursor:pointer;font-weight:600">תזכורת</span>
+        </div>
+        <!-- failed -->
+        <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 80px;font-size:12px;align-items:center;padding:6px 4px;border-radius:6px;background:#fff5f5">
+          <div style="display:flex;align-items:center;gap:8px"><div style="width:26px;height:26px;border-radius:50%;background:#fee2e2;color:#dc2626;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700">ר"ב</div><span style="font-weight:600">רחל בן-דוד</span></div>
+          <span style="color:#dc2626">✕ נכשל</span>
+          <span style="color:#9ca3af">—</span>
+          <span style="color:#9ca3af">—</span>
+          <span style="font-size:11px;color:#dc2626;cursor:pointer;font-weight:600">נסה שוב</span>
+        </div>
+      </div>
+
+      <!-- footer link -->
+      <div style="padding:10px 16px;background:#f9fafb;border-top:1px solid #e5e7eb;text-align:center;font-size:12px;color:#6b7280">
+        <a href="newsfeed-mockup.html" target="_blank" style="color:#2563eb;text-decoration:none;font-weight:600">🔗 פתח mockup אינטראקטיבי מלא →</a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
 
 <!-- ARCH -->
 <section id="arch">
